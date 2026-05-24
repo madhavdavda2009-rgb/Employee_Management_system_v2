@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Edit Employee</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<nav>
+    <h2>EMS</h2>
+</nav>
+
+<section class="hero">
+
+    <h1>Edit Employee</h1>
+
+    <form method="POST" class="employee-form">
+
+        <input
+            type="text"
+            name="name"
+            value="{{ employee.name }}"
+            required
+        >
+
+        <input
+            type="text"
+            name="department"
+            value="{{ employee.department }}"
+            required
+        >
+
+        <button type="submit">
+            Update Employee
+        </button>
+
+    </form>
+
+</section>
+
+</body>
+</html>

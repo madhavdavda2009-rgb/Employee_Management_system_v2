@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Employees</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<nav>
+    <h2>EMS</h2>
+    <ul>
+        <li><a href="/">Dashboard</a></li>
+        <li><a href="/employees">Employees</a></li>
+    </ul>
+</nav>
+
+<section class="hero">
+    <h1>Add Employee</h1>
+
+    <form method="POST" class="employee-form">
+
+        <input type="text" name="name" placeholder="Employee Name" required>
+
+        <input type="text" name="department" placeholder="Department" required>
+
+        <button type="submit">Add Employee</button>
+
+    </form>
+
+    {% for employee in employees %}
+
+<div class="employee-card">
+    <h3>{{ employee.name }}</h3>
+    <p>{{ employee.department }}</p>
+    <a href="/edit/{{ loop.index0 }}">
+    <button>Edit</button>
+</a>
+    <a href="/delete/{{ loop.index0 }}">
+        <button class="delete-btn">Delete</button>
+    </a>
+</div>
+
+{% endfor %}
+</section>
+
+</body>
+</html>
