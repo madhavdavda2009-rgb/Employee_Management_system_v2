@@ -26,21 +26,52 @@
         <button type="submit">Add Employee</button>
 
     </form>
+    <form method="GET" class="search-form">
+
+    <input
+        type="text"
+        name="search"
+        placeholder="Search employee..."
+    >
+
+    <button type="submit">
+        Search
+    </button>
+
+</form>
+
+    <table class="employee-table">
+
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Department</th>
+        <th>Actions</th>
+    </tr>
 
     {% for employee in employees %}
 
-<div class="employee-card">
-    <h3>{{ employee.name }}</h3>
-    <p>{{ employee.department }}</p>
-    <a href="/edit/{{ loop.index0 }}">
-    <button>Edit</button>
-</a>
-    <a href="/delete/{{ loop.index0 }}">
-        <button class="delete-btn">Delete</button>
-    </a>
-</div>
+    <tr>
+        <td>{{ employee[0] }}</td>
+        <td>{{ employee[1] }}</td>
+        <td>{{ employee[2] }}</td>
 
-{% endfor %}
+        <td>
+
+            <a href="/edit/{{ employee[0] }}">
+                <button>Edit</button>
+            </a>
+
+            <a href="/delete/{{ employee[0] }}">
+                <button class="delete-btn">Delete</button>
+            </a>
+
+        </td>
+    </tr>
+
+    {% endfor %}
+
+    </table>
 </section>
 
 </body>
