@@ -243,3 +243,12 @@ nav a:hover{
     color:white;
     cursor:pointer;
 }
+.flash-message{
+    width:350px;
+    margin:20px auto;
+    padding:15px;
+    background:#22c55e;
+    color:white;
+    border-radius:12px;
+    font-weight:bold;
+}

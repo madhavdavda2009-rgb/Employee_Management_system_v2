@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, flash
 import sqlite3
 
 app = Flask(__name__)
+app.secret_key = "madhav_secret"
 
 
 @app.route("/")
@@ -30,6 +31,7 @@ def employees():
         )
 
         connection.commit()
+        flash("Employee added successfully!")
 
         return redirect("/employees")
 
@@ -61,6 +63,7 @@ def delete_employee(id):
     connection.commit()
 
     connection.close()
+    flash("Employee deleted successfully!")
 
     return redirect("/employees")
 
@@ -83,6 +86,7 @@ def edit_employee(id):
         connection.commit()
 
         connection.close()
+        flash("Employee updated successfully!")
 
         return redirect("/employees")
 
