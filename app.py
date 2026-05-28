@@ -1,12 +1,46 @@
-from flask import Flask, render_template, request, redirect, flash
+from flask import Flask, render_template, request, redirect, flash, session
 import sqlite3
 
 app = Flask(__name__)
 app.secret_key = "madhav_secret"
 
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+
+        if username == "admin" and password == "1234":
+            session["user"] = username
+
+            flash("Login Successful!")
+
+            return redirect("/")
+
+        else:
+            flash("Invalid Credentials!")
+
+            return redirect("/login")
+
+    return render_template("login.html")
+
+
+@app.route("/logout")
+def logout():
+
+    session.pop("user", None)
+
+    flash("Logged Out!")
+
+    return redirect("/login")
+
+
 @app.route("/")
 def home():
+    if "user" not in session:
+        return redirect("/login")
     connection = sqlite3.connect("employees.db")
     cursor = connection.cursor()
     cursor.execute("SELECT count(*) FROM employees")
@@ -18,6 +52,8 @@ def home():
 
 @app.route("/employees", methods=["GET", "POST"])
 def employees():
+    if "user" not in session:
+        return redirect("/login")
 
     connection = sqlite3.connect("employees.db")
     cursor = connection.cursor()
