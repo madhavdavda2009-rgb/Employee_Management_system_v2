@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: ems_backend
+    ports:
+      - "5000:5000"
+    environment:
+      - JWT_SECRET=your_jwt_secret_key
+      - OFFICE_START_TIME=10:00
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - backend_data:/app/data
+
+  frontend:
+    build: ./frontend
+    container_name: ems_frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  backend_data:
