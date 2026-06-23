@@ -1,8 +1,9 @@
 import { useAuth } from '../context/AuthContext';
-import { LogOut } from 'lucide-react';
+import { LogOut, Menu, ScanFace } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
-const Header = () => {
+const Header = ({ toggleMobileSidebar }) => {
   const { user, logout } = useAuth();
 
   return (
@@ -12,6 +13,22 @@ const Header = () => {
       className="glass-card border-b border-slate-800/50 px-6 py-4 sticky top-0 z-10"
     >
       <div className="flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={toggleMobileSidebar}
+            className="md:hidden p-2 mr-2 rounded-lg hover:bg-slate-800/40 transition-colors"
+            aria-label="Open menu"
+          >
+            <Menu size={20} className="text-slate-300" />
+          </button>
+
+          <Link to="/dashboard" className="flex items-center gap-3 no-underline">
+            <div className="w-9 h-9 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
+              <ScanFace size={18} className="text-white" />
+            </div>
+            <span className="text-white font-semibold text-lg">EMS Pro</span>
+          </Link>
+        </div>
         <div className="flex-1" />
 
         <div className="flex items-center gap-4">

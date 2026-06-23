@@ -55,7 +55,7 @@ const Analytics = () => {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h1 className="text-3xl font-bold text-white mb-2">Analytics</h1>
+        <h1 className="page-title">Analytics</h1>
         <p className="text-slate-400">Attendance trends and department insights</p>
       </motion.div>
 
@@ -108,7 +108,7 @@ const Analytics = () => {
           className="glass rounded-xl p-6 lg:col-span-2"
         >
           <h2 className="text-xl font-semibold text-white mb-4">Department Attendance</h2>
-          <div className="overflow-x-auto">
+          <div className="table-responsive">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-white/20">
@@ -122,11 +122,11 @@ const Analytics = () => {
               <tbody>
                 {departmentData.map((dept) => (
                   <tr key={dept.name} className="border-b border-white/10 hover:bg-white/8 transition-colors duration-200">
-                    <td className="py-3 px-4 text-white">{dept.name}</td>
-                    <td className="py-3 px-4 text-white text-center">{dept.total}</td>
-                    <td className="py-3 px-4 text-green-400 text-center">{dept.present}</td>
-                    <td className="py-3 px-4 text-yellow-400 text-center">{dept.late}</td>
-                    <td className="py-3 px-4 text-red-400 text-center">{dept.absent}</td>
+                    <td className="py-3 px-4 text-white" data-label="Department">{dept.name}</td>
+                    <td className="py-3 px-4 text-white text-center" data-label="Total">{dept.total}</td>
+                    <td className="py-3 px-4 text-green-400 text-center" data-label="Present">{dept.present}</td>
+                    <td className="py-3 px-4 text-yellow-400 text-center" data-label="Late">{dept.late}</td>
+                    <td className="py-3 px-4 text-red-400 text-center" data-label="Absent">{dept.absent}</td>
                   </tr>
                 ))}
               </tbody>

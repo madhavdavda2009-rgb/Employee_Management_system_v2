@@ -85,7 +85,7 @@ const Attendance = () => {
         className="flex justify-between items-center"
       >
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Attendance</h1>
+          <h1 className="page-title">Attendance</h1>
           <p className="text-slate-400">Face recognition-based attendance marking</p>
         </div>
         <motion.button
@@ -115,7 +115,7 @@ const Attendance = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
             <div className="md:col-span-2 flex items-center justify-center">
-              <div className="relative scanner-frame w-72 h-72 rounded-full flex items-center justify-center">
+              <div className="relative scanner-frame w-56 sm:w-72 md:w-80 lg:w-96 h-56 sm:h-72 md:h-80 lg:h-96 rounded-full flex items-center justify-center mx-auto">
                 <div className={`absolute inset-4 rounded-full overflow-hidden bg-black/20 border border-white/5`}> 
                   <Webcam
                     ref={webcamRef}
@@ -123,9 +123,8 @@ const Attendance = () => {
                     className="w-full h-full object-cover"
                   />
                 </div>
-
-                <div className="scan-ring absolute w-80 h-80 rounded-full border-2 border-gradient-to-r from-indigo-500 to-purple-500 opacity-60 animate-pulse" />
-                <div className="scan-overlay absolute w-80 h-80 rounded-full pointer-events-none">
+                <div className="scan-ring absolute inset-0 w-full h-full rounded-full border-2 border-gradient-to-r from-indigo-500 to-purple-500 opacity-60 animate-pulse" />
+                <div className="scan-overlay absolute inset-0 rounded-full pointer-events-none">
                   <div className="scan-line absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white/30 to-transparent top-1/3 rounded-full" />
                 </div>
 
@@ -210,7 +209,7 @@ const Attendance = () => {
 
       <div className="glass rounded-xl p-6">
         <h2 className="text-xl font-semibold text-white mb-4">Today's Attendance</h2>
-        <div className="overflow-x-auto">
+        <div className="table-responsive">
           <table className="w-full">
             <thead>
               <tr className="border-b border-white/20">
@@ -223,13 +222,13 @@ const Attendance = () => {
             <tbody>
               {todayAttendance.map((record) => (
                 <tr key={record._id} className="border-b border-white/10 hover:bg-white/8 transition-colors duration-200">
-                  <td className="py-3 px-4 text-white">
+                  <td className="py-3 px-4 text-white" data-label="Employee">
                     {record.employeeId.name} ({record.employeeId.employeeId})
                   </td>
-                  <td className="py-3 px-4 text-white">
+                  <td className="py-3 px-4 text-white" data-label="Check In">
                     {record.checkIn ? new Date(record.checkIn).toLocaleTimeString() : 'N/A'}
                   </td>
-                  <td className="py-3 px-4">
+                  <td className="py-3 px-4" data-label="Status">
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                       record.status === 'Present' ? 'bg-green-500/20 text-green-200' :
                       record.status === 'Late' ? 'bg-yellow-500/20 text-yellow-200' :
@@ -238,7 +237,7 @@ const Attendance = () => {
                       {record.status}
                     </span>
                   </td>
-                  <td className="py-3 px-4 text-white">
+                  <td className="py-3 px-4 text-white" data-label="Confidence">
                     {record.confidence ? `${record.confidence}%` : 'N/A'}
                   </td>
                 </tr>

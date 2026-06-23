@@ -51,7 +51,7 @@ const Employees = () => {
         className="flex justify-between items-center"
       >
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Employees</h1>
+          <h1 className="page-title">Employees</h1>
           <p className="text-slate-400">Manage employee directory and information</p>
         </div>
         <motion.button
@@ -79,7 +79,7 @@ const Employees = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="table-responsive">
           <table className="w-full">
             <thead>
               <tr className="border-b border-white/20">
@@ -99,24 +99,28 @@ const Employees = () => {
                   animate={{ opacity: 1 }}
                   className="border-b border-white/10 hover:bg-white/8 transition-colors duration-200"
                 >
-                  <td className="py-3 px-4 text-white">{emp.employeeId}</td>
-                  <td className="py-3 px-4 text-white">{emp.name}</td>
-                  <td className="py-3 px-4 text-white">{emp.email}</td>
-                  <td className="py-3 px-4 text-white">{emp.department}</td>
-                  <td className="py-3 px-4 text-white">{emp.designation}</td>
-                  <td className="py-3 px-4 text-right">
-                    <button
-                      onClick={() => { setSelectedEmployee(emp); setShowForm(true); }}
-                      className="text-blue-400 hover:text-blue-300 hover:scale-110 mx-2 transition-all duration-200"
-                    >
-                      <Edit size={18} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(emp._id)}
-                      className="text-red-400 hover:text-red-300 hover:scale-110 transition-all duration-200"
-                    >
-                      <Trash2 size={18} />
-                    </button>
+                  <td className="py-3 px-4 text-white" data-label="ID">{emp.employeeId}</td>
+                  <td className="py-3 px-4 text-white" data-label="Name">{emp.name}</td>
+                  <td className="py-3 px-4 text-white" data-label="Email">{emp.email}</td>
+                  <td className="py-3 px-4 text-white" data-label="Department">{emp.department}</td>
+                  <td className="py-3 px-4 text-white" data-label="Designation">{emp.designation}</td>
+                  <td className="py-3 px-4 text-right" data-label="Actions">
+                    <div className="table-actions" role="group" aria-label={`Actions for ${emp.name}`}>
+                      <button
+                        onClick={() => { setSelectedEmployee(emp); setShowForm(true); }}
+                        className="text-blue-400 hover:text-blue-300 transition-all duration-200"
+                        title={`Edit ${emp.name}`}
+                      >
+                        <Edit size={18} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(emp._id)}
+                        className="text-red-400 hover:text-red-300 transition-all duration-200"
+                        title={`Delete ${emp.name}`}
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
                   </td>
                 </motion.tr>
               ))}

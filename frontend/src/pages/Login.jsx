@@ -45,7 +45,7 @@ const Login = () => {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.250, delay: 0.1 }}
-            className="text-3xl font-bold text-white text-center mb-2"
+            className="page-title text-center"
           >
             Admin Login
           </motion.h2>

@@ -86,7 +86,7 @@ const Dashboard = () => {
         <motion.h1
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="text-3xl font-bold text-white mb-2"
+          className="page-title"
         >
           Dashboard Overview
         </motion.h1>

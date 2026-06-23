@@ -55,7 +55,7 @@ const Reports = () => {
         animate={{ opacity: 1, y: 0 }}
         className="mb-6"
       >
-        <h1 className="text-3xl font-bold text-white mb-2">Reports</h1>
+        <h1 className="page-title">Reports</h1>
         <p className="text-slate-400">Generate and download attendance reports</p>
       </motion.div>
 
@@ -121,7 +121,7 @@ const Reports = () => {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="table-responsive">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-white/20">
@@ -134,12 +134,12 @@ const Reports = () => {
               <tbody>
                 {report.records.map((record) => (
                   <tr key={record._id} className="border-b border-white/10 hover:bg-white/8 transition-colors duration-200">
-                    <td className="py-3 px-4 text-white">
+                    <td className="py-3 px-4 text-white" data-label="Date">
                       {new Date(record.date).toLocaleDateString()}
                     </td>
-                    <td className="py-3 px-4 text-white">{record.employeeId.name}</td>
-                    <td className="py-3 px-4 text-white">{record.employeeId.department}</td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-4 text-white" data-label="Employee">{record.employeeId.name}</td>
+                    <td className="py-3 px-4 text-white" data-label="Department">{record.employeeId.department}</td>
+                    <td className="py-3 px-4" data-label="Status">
                       <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                         record.status === 'Present' ? 'bg-green-500/20 text-green-200' :
                         record.status === 'Late' ? 'bg-yellow-500/20 text-yellow-200' :
