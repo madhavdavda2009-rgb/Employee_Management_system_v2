@@ -1,18 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, ScanFace, FileText, BarChart3, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Users, ScanFace, FileText, BarChart3, Menu, X, History, UserCircle2, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
-
-const navItems = [
-  { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/employees', label: 'Employees', icon: Users },
-  { path: '/attendance', label: 'Scanner', icon: ScanFace },
-  { path: '/reports', label: 'Reports', icon: FileText },
-  { path: '/analytics', label: 'Analytics', icon: BarChart3 }
-];
+import { useAuth } from '../context/AuthContext';
 
 const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
+  const { user, logout } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
+  const navItems = user?.role === 'employee'
+    ? [
+        { path: '/dashboard', label: 'Profile', icon: UserCircle2 },
+        { path: '/attendance', label: 'Scanner', icon: ScanFace },
+        { path: '/history', label: 'History', icon: History }
+      ]
+    : [
+        { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { path: '/employees', label: 'Employees', icon: Users },
+        { path: '/attendance', label: 'Scanner', icon: ScanFace },
+        { path: '/reports', label: 'Reports', icon: FileText },
+        { path: '/analytics', label: 'Analytics', icon: BarChart3 }
+      ];
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)');
@@ -79,17 +86,28 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
 
   const renderFooter = () => (
     <div className="p-4 border-t border-slate-800/50">
-      <div className={`glass rounded-lg p-4 ${collapsed ? 'text-center' : ''}`}>
-        <div className={`${collapsed ? 'mx-auto' : ''}`}>
-          <p className={`text-sm font-medium text-slate-300 ${collapsed ? 'hidden md:block group-hover:block' : ''}`}>System Status</p>
-          {!collapsed && (
-            <div className="flex items-center gap-2 mt-2">
-              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-              <p className="text-xs text-slate-500">All systems operational</p>
-            </div>
-          )}
+      {user?.role === 'employee' ? (
+        <button
+          type="button"
+          onClick={logout}
+          className={`btn-secondary w-full flex items-center justify-center gap-2 ${collapsed ? 'px-3' : ''}`}
+        >
+          <LogOut size={18} />
+          <span className={`${collapsed ? 'hidden md:block group-hover:block' : ''}`}>Logout</span>
+        </button>
+      ) : (
+        <div className={`glass rounded-lg p-4 ${collapsed ? 'text-center' : ''}`}>
+          <div className={`${collapsed ? 'mx-auto' : ''}`}>
+            <p className={`text-sm font-medium text-slate-300 ${collapsed ? 'hidden md:block group-hover:block' : ''}`}>System Status</p>
+            {!collapsed && (
+              <div className="flex items-center gap-2 mt-2">
+                <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+                <p className="text-xs text-slate-500">All systems operational</p>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 

@@ -34,6 +34,12 @@ class Admin {
     return admin;
   }
 
+  static count() {
+    const db = getDatabase();
+    const result = db.exec('SELECT COUNT(*) as count FROM admins');
+    return result[0].values[0][0];
+  }
+
   static findById(id) {
     const db = getDatabase();
     const result = db.exec('SELECT id, email, name, role FROM admins WHERE id = ?', [id]);

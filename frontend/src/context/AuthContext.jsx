@@ -21,10 +21,11 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const { data } = await api.post('/auth/login', { email, password });
+    const userData = data.user || data.admin || data.employee;
     localStorage.setItem('token', data.token);
-    localStorage.setItem('user', JSON.stringify(data.admin));
+    localStorage.setItem('user', JSON.stringify(userData));
     api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
-    setUser(data.admin);
+    setUser(userData);
     return data;
   };
 

@@ -2,6 +2,7 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import { body, validationResult } from 'express-validator';
 import Admin from '../models/Admin.js';
+import Employee from '../models/Employee.js';
 
 const router = express.Router();
 
@@ -17,18 +18,41 @@ router.post('/login', [
 
     const { email, password } = req.body;
     const admin = Admin.findByEmail(email);
-    
-    if (!admin || !Admin.comparePassword(password, admin.password)) {
+    if (admin && Admin.comparePassword(password, admin.password)) {
+      const token = jwt.sign(
+        { id: admin.id, email: admin.email, role: 'admin' },
+        process.env.JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+
+      const user = { id: admin.id, name: admin.name, email: admin.email, role: 'admin' };
+      return res.json({ token, user, admin: user });
+    }
+
+    const employee = Employee.findByEmail(email);
+    if (!employee || !employee.isActive) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    if (!Employee.comparePassword(password, employee.password)) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     const token = jwt.sign(
-      { id: admin.id, email: admin.email },
+      { id: employee.id, email: employee.email, role: 'employee' },
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
 
-    res.json({ token, admin: { id: admin.id, name: admin.name, email: admin.email } });
+    const user = {
+      id: employee.id,
+      employeeId: employee.employeeId,
+      name: employee.name,
+      email: employee.email,
+      role: 'employee'
+    };
+
+    res.json({ token, user, employee: user });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -43,6 +67,10 @@ router.post('/register', [
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
+    }
+
+    if (Admin.count() > 0) {
+      return res.status(403).json({ error: 'Registration is disabled. Please use existing admin credentials.' });
     }
 
     const { email, password, name } = req.body;

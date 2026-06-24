@@ -47,7 +47,7 @@ const Login = () => {
             transition={{ duration: 0.250, delay: 0.1 }}
             className="page-title text-center"
           >
-            Admin Login
+            Internal Access
           </motion.h2>
           <motion.p
             initial={{ opacity: 0 }}
@@ -55,7 +55,7 @@ const Login = () => {
             transition={{ duration: 0.250, delay: 0.15 }}
             className="text-slate-400 text-center mb-8"
           >
-            EMS Pro - Enterprise Management System
+            EMS Pro - Internal credentials
           </motion.p>
 
           {error && (
@@ -68,15 +68,17 @@ const Login = () => {
             </motion.div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
             <div>
               <label className="text-sm text-slate-400 mb-2 block">Email</label>
               <input
                 type="email"
-                placeholder="admin@company.com"
+                placeholder="name@company.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="input-field bg-white/10 text-white placeholder-white/60"
+                autoComplete="off"
+                name="login-email"
                 required
               />
             </div>
@@ -84,10 +86,12 @@ const Login = () => {
               <label className="text-sm text-slate-400 mb-2 block">Password</label>
               <input
                 type="password"
-                placeholder="Enter password"
+                placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="input-field bg-white/10 text-white placeholder-white/60"
+                autoComplete="new-password"
+                name="login-password"
                 required
               />
             </div>

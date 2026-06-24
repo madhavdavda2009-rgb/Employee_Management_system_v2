@@ -1,11 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Camera } from 'lucide-react';
+import { Camera, ScanFace, History } from 'lucide-react';
 import Webcam from 'react-webcam';
+import { Link } from 'react-router-dom';
 import api from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 import { loadModels, detectFace, getFaceDescriptor } from '../utils/faceDetection';
 
 const Attendance = () => {
+  const { user } = useAuth();
+  const isEmployee = user?.role === 'employee';
   const [todayAttendance, setTodayAttendance] = useState([]);
   const [showScanner, setShowScanner] = useState(false);
   const [scanning, setScanning] = useState(false);
@@ -14,9 +18,11 @@ const Attendance = () => {
   const webcamRef = useRef(null);
 
   useEffect(() => {
-    fetchTodayAttendance();
+    if (!isEmployee) {
+      fetchTodayAttendance();
+    }
     initModels();
-  }, []);
+  }, [isEmployee]);
 
   const initModels = async () => {
     const loaded = await loadModels();
@@ -40,7 +46,7 @@ const Attendance = () => {
 
     setScanning(true);
     setMessage('Detecting face...');
-    
+
     try {
       const imageSrc = webcamRef.current.getScreenshot();
       const img = new Image();
@@ -48,7 +54,7 @@ const Attendance = () => {
 
       img.onload = async () => {
         const detection = await detectFace(img);
-        
+
         if (!detection) {
           setMessage('No face detected. Please try again.');
           setScanning(false);
@@ -56,15 +62,18 @@ const Attendance = () => {
         }
 
         const descriptor = getFaceDescriptor(detection);
-        
+
         try {
-          const { data } = await api.post('/attendance/mark', { 
-            faceDescriptor: descriptor 
+          const { data } = await api.post('/attendance/mark', {
+            faceDescriptor: descriptor
           });
-          
+
           setMessage(`✓ ${data.employee.name} - ${data.status}`);
           setShowScanner(false);
-          fetchTodayAttendance();
+
+          if (!isEmployee) {
+            fetchTodayAttendance();
+          }
         } catch (error) {
           setMessage(error.response?.data?.error || 'Recognition failed');
         } finally {
@@ -82,20 +91,24 @@ const Attendance = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex justify-between items-center"
+        className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"
       >
         <div>
-          <h1 className="page-title">Attendance</h1>
-          <p className="text-slate-400">Face recognition-based attendance marking</p>
+          <h1 className="page-title">{isEmployee ? 'Attendance Scanner' : 'Attendance'}</h1>
+          <p className="text-slate-400">
+            {isEmployee
+              ? `Mark attendance for your own account only${user?.employeeId ? ` - ID ${user.employeeId}` : ''}.`
+              : 'Face recognition-based attendance marking'}
+          </p>
         </div>
         <motion.button
           onClick={() => setShowScanner(!showScanner)}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="btn-primary flex items-center gap-2"
+          className="btn-primary flex items-center justify-center gap-2 w-full sm:w-auto"
         >
           <Camera size={20} />
-          {showScanner ? 'Close Scanner' : 'Mark Attendance'}
+          {showScanner ? 'Close Scanner' : isEmployee ? 'Open Scanner' : 'Mark Attendance'}
         </motion.button>
       </motion.div>
 
@@ -105,7 +118,15 @@ const Attendance = () => {
           animate={{ opacity: 1, y: 0 }}
           className="glass rounded-2xl p-6 mb-6"
         >
-          <h2 className="text-2xl font-semibold text-white mb-4">Face Recognition Scanner</h2>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
+            <h2 className="text-2xl font-semibold text-white">Face Recognition Scanner</h2>
+            {isEmployee && (
+              <Link to="/history" className="btn-secondary inline-flex items-center gap-2 w-full sm:w-auto justify-center">
+                <History size={16} />
+                View History
+              </Link>
+            )}
+          </div>
 
           {!modelsReady && (
             <div className="bg-yellow-500/20 p-4 rounded-lg text-yellow-200 mb-4">
@@ -113,10 +134,10 @@ const Attendance = () => {
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-            <div className="md:col-span-2 flex items-center justify-center">
+          <div className={`grid grid-cols-1 ${isEmployee ? 'lg:grid-cols-2' : 'md:grid-cols-3'} gap-6 items-start`}>
+            <div className={`${isEmployee ? 'lg:col-span-1' : 'md:col-span-2'} flex items-center justify-center`}>
               <div className="relative scanner-frame w-56 sm:w-72 md:w-80 lg:w-96 h-56 sm:h-72 md:h-80 lg:h-96 rounded-full flex items-center justify-center mx-auto">
-                <div className={`absolute inset-4 rounded-full overflow-hidden bg-black/20 border border-white/5`}> 
+                <div className="absolute inset-4 rounded-full overflow-hidden bg-black/20 border border-white/5">
                   <Webcam
                     ref={webcamRef}
                     screenshotFormat="image/jpeg"
@@ -129,7 +150,7 @@ const Attendance = () => {
                 </div>
 
                 <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-2">
-                  <div className={`w-20 h-20 rounded-full flex items-center justify-center bg-gradient-to-br from-indigo-600 to-purple-600 text-white font-bold text-lg`}>
+                  <div className="w-20 h-20 rounded-full flex items-center justify-center bg-gradient-to-br from-indigo-600 to-purple-600 text-white font-bold text-lg">
                     {scanning ? (
                       <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 0.6, repeat: Infinity }} className="text-center">
                         ○
@@ -146,20 +167,24 @@ const Attendance = () => {
                     animate={{ opacity: 1, y: 0 }}
                     className={`absolute top-4 left-4 px-3 py-2 rounded-lg text-xs font-medium ${message.includes('✓') ? 'bg-emerald-600/80 text-emerald-50' : 'bg-red-600/80 text-red-50'}`}
                   >
-                    {message.includes('✓') ? '✓ ' : '✗ '}
+                    {message.includes('✓') ? '✓ ' : '✕ '}
                     {message}
                   </motion.div>
                 )}
               </div>
             </div>
 
-            <div className="md:col-span-1 space-y-4">
+            <div className={`${isEmployee ? 'lg:col-span-1' : 'md:col-span-1'} space-y-4`}>
               <div className="glass-card p-4 rounded-xl">
                 <p className="text-sm text-slate-400">Scanner Status</p>
                 <div className="flex items-center justify-between mt-3">
                   <div>
-                    <p className="text-lg font-semibold text-white">{scanning ? 'Scanning...' : modelsReady ? 'Ready to Scan' : 'Loading models'}</p>
-                    <p className="text-xs text-slate-400 mt-1">Confidence indicator and live preview</p>
+                    <p className="text-lg font-semibold text-white">
+                      {scanning ? 'Scanning...' : modelsReady ? 'Ready to Scan' : 'Loading models'}
+                    </p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      {isEmployee ? 'Validated against your own account only.' : 'Confidence indicator and live preview'}
+                    </p>
                   </div>
                 </div>
 
@@ -173,7 +198,7 @@ const Attendance = () => {
                       <span>Scanning...</span>
                     ) : (
                       <>
-                        <Camera size={16} />
+                        <ScanFace size={16} />
                         <span>Start Scan</span>
                       </>
                     )}
@@ -190,62 +215,73 @@ const Attendance = () => {
                     <div className="text-sm font-medium text-white">{scanning ? '●' : '—'}</div>
                   </div>
                 </div>
-
               </div>
 
-              <div className="glass p-4 rounded-xl">
-                <p className="text-sm text-slate-400">Quick Tips</p>
-                <ul className="text-xs text-slate-300 mt-2 space-y-2">
-                  <li>Position face in the center of the circle</li>
-                  <li>Ensure good lighting and face visibility</li>
-                  <li>Remove masks or occlusions for better accuracy</li>
-                </ul>
-              </div>
+              {isEmployee ? (
+                <div className="glass p-4 rounded-xl">
+                  <p className="text-sm text-slate-400">Quick Tips</p>
+                  <ul className="text-xs text-slate-300 mt-2 space-y-2">
+                    <li>Position your face in the center of the circle</li>
+                    <li>Keep lighting steady for the best match</li>
+                    <li>Use this scanner only for your own attendance</li>
+                  </ul>
+                </div>
+              ) : (
+                <div className="glass p-4 rounded-xl">
+                  <p className="text-sm text-slate-400">Quick Tips</p>
+                  <ul className="text-xs text-slate-300 mt-2 space-y-2">
+                    <li>Position face in the center of the circle</li>
+                    <li>Ensure good lighting and face visibility</li>
+                    <li>Remove masks or occlusions for better accuracy</li>
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
-
         </motion.div>
       )}
 
-      <div className="glass rounded-xl p-6">
-        <h2 className="text-xl font-semibold text-white mb-4">Today's Attendance</h2>
-        <div className="table-responsive">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-white/20">
-                <th className="text-left py-3 px-4 text-white/90">Employee</th>
-                <th className="text-left py-3 px-4 text-white/90">Check In</th>
-                <th className="text-left py-3 px-4 text-white/90">Status</th>
-                <th className="text-left py-3 px-4 text-white/90">Confidence</th>
-              </tr>
-            </thead>
-            <tbody>
-              {todayAttendance.map((record) => (
-                <tr key={record._id} className="border-b border-white/10 hover:bg-white/8 transition-colors duration-200">
-                  <td className="py-3 px-4 text-white" data-label="Employee">
-                    {record.employeeId.name} ({record.employeeId.employeeId})
-                  </td>
-                  <td className="py-3 px-4 text-white" data-label="Check In">
-                    {record.checkIn ? new Date(record.checkIn).toLocaleTimeString() : 'N/A'}
-                  </td>
-                  <td className="py-3 px-4" data-label="Status">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      record.status === 'Present' ? 'bg-green-500/20 text-green-200' :
-                      record.status === 'Late' ? 'bg-yellow-500/20 text-yellow-200' :
-                      'bg-red-500/20 text-red-200'
-                    }`}>
-                      {record.status}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-white" data-label="Confidence">
-                    {record.confidence ? `${record.confidence}%` : 'N/A'}
-                  </td>
+      {!isEmployee && (
+        <div className="glass rounded-xl p-6">
+          <h2 className="text-xl font-semibold text-white mb-4">Today's Attendance</h2>
+          <div className="table-responsive">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-white/20">
+                  <th className="text-left py-3 px-4 text-white/90">Employee</th>
+                  <th className="text-left py-3 px-4 text-white/90">Check In</th>
+                  <th className="text-left py-3 px-4 text-white/90">Status</th>
+                  <th className="text-left py-3 px-4 text-white/90">Confidence</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {todayAttendance.map((record) => (
+                  <tr key={record._id} className="border-b border-white/10 hover:bg-white/8 transition-colors duration-200">
+                    <td className="py-3 px-4 text-white" data-label="Employee">
+                      {record.employeeId.name} ({record.employeeId.employeeId})
+                    </td>
+                    <td className="py-3 px-4 text-white" data-label="Check In">
+                      {record.checkIn ? new Date(record.checkIn).toLocaleTimeString() : 'N/A'}
+                    </td>
+                    <td className="py-3 px-4" data-label="Status">
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        record.status === 'Present' ? 'bg-green-500/20 text-green-200' :
+                        record.status === 'Late' ? 'bg-yellow-500/20 text-yellow-200' :
+                        'bg-red-500/20 text-red-200'
+                      }`}>
+                        {record.status}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-white" data-label="Confidence">
+                      {record.confidence ? `${record.confidence}%` : 'N/A'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

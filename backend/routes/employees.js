@@ -1,13 +1,13 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
 import Employee from '../models/Employee.js';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
 
 router.use(authenticate);
 
-router.post('/', [
+router.post('/', authorize('admin'), [
   body('employeeId').notEmpty(),
   body('name').notEmpty(),
   body('email').isEmail(),
@@ -16,7 +16,9 @@ router.post('/', [
   body('designation').notEmpty(),
   body('joiningDate').isISO8601(),
   body('salary').isNumeric(),
-  body('faceDescriptor').isArray()
+  body('faceDescriptor').isArray(),
+  body('password').optional().isLength({ min: 6 }),
+  body('isActive').optional().isBoolean()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -32,7 +34,8 @@ router.post('/', [
 
     const employee = Employee.create({
       ...employeeData,
-      faceEncoding: faceDescriptor
+      faceEncoding: faceDescriptor,
+      isActive: req.body.isActive !== undefined ? req.body.isActive : true
     });
 
     res.status(201).json({ message: 'Employee created successfully', employee });
@@ -44,7 +47,7 @@ router.post('/', [
   }
 });
 
-router.get('/', async (req, res) => {
+router.get('/', authorize('admin'), async (req, res) => {
   try {
     const { department, search } = req.query;
     const employees = Employee.findAll({ department, search });
@@ -60,7 +63,25 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/me', async (req, res) => {
+  try {
+    if (req.user.role !== 'employee') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const employee = Employee.findById(req.user.id);
+    if (!employee) {
+      return res.status(404).json({ error: 'Employee not found' });
+    }
+
+    const { faceEncoding, password, ...result } = employee;
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/:id', authorize('admin'), async (req, res) => {
   try {
     const employee = Employee.findById(req.params.id);
     if (!employee) return res.status(404).json({ error: 'Employee not found' });
@@ -72,7 +93,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', authorize('admin'), async (req, res) => {
   try {
     const { faceEncoding, ...updateData } = req.body;
     const employee = Employee.update(req.params.id, updateData);
@@ -86,7 +107,21 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) => {
+router.post('/:id/reset-password', authorize('admin'), async (req, res) => {
+  try {
+    const result = Employee.resetPassword(req.params.id);
+    if (!result.employee) return res.status(404).json({ error: 'Employee not found' });
+    res.json({
+      message: 'Password reset successfully',
+      password: result.password,
+      employee: result.employee
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.delete('/:id', authorize('admin'), async (req, res) => {
   try {
     const success = Employee.delete(req.params.id);
     if (!success) return res.status(404).json({ error: 'Employee not found' });

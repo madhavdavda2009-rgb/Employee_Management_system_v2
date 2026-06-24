@@ -4,12 +4,13 @@ import { ToastProvider, useToastContext } from './context/ToastContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import ToastContainer from './components/ToastContainer';
 import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
 import Employees from './pages/Employees';
 import Attendance from './pages/Attendance';
 import Reports from './pages/Reports';
 import Analytics from './pages/Analytics';
 import Layout from './components/Layout';
+import RoleHome from './components/RoleHome';
+import EmployeeHistory from './pages/EmployeeHistory';
 
 function AppContent() {
   const { toasts, dismissToast } = useToastContext();
@@ -21,11 +22,12 @@ function AppContent() {
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="employees" element={<Employees />} />
+            <Route path="dashboard" element={<RoleHome />} />
+            <Route path="employees" element={<ProtectedRoute allowedRoles={['admin']} redirectTo="/dashboard"><Employees /></ProtectedRoute>} />
             <Route path="attendance" element={<Attendance />} />
-            <Route path="reports" element={<Reports />} />
-            <Route path="analytics" element={<Analytics />} />
+            <Route path="history" element={<ProtectedRoute allowedRoles={['employee']} redirectTo="/dashboard"><EmployeeHistory /></ProtectedRoute>} />
+            <Route path="reports" element={<ProtectedRoute allowedRoles={['admin']} redirectTo="/dashboard"><Reports /></ProtectedRoute>} />
+            <Route path="analytics" element={<ProtectedRoute allowedRoles={['admin']} redirectTo="/dashboard"><Analytics /></ProtectedRoute>} />
           </Route>
         </Routes>
       </BrowserRouter>

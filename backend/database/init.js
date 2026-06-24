@@ -17,8 +17,11 @@ async function initDatabase() {
   if (fs.existsSync(dbPath)) {
     const buffer = fs.readFileSync(dbPath);
     db = new SQL.Database(buffer);
+    db.run('PRAGMA foreign_keys = ON');
+    migrateDatabase();
   } else {
     db = new SQL.Database();
+    db.run('PRAGMA foreign_keys = ON');
     
     db.run(`
       CREATE TABLE admins (
@@ -42,6 +45,8 @@ async function initDatabase() {
         joining_date DATE NOT NULL,
         salary REAL NOT NULL,
         face_encoding TEXT NOT NULL,
+        profile_picture TEXT,
+        password TEXT,
         is_active INTEGER DEFAULT 1,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -71,6 +76,26 @@ async function initDatabase() {
   }
   
   console.log('Database initialized successfully');
+}
+
+function migrateDatabase() {
+  const employeesInfo = db.exec('PRAGMA table_info(employees)');
+  const employeeColumns = employeesInfo[0]?.values.map(column => column[1]) || [];
+  let changed = false;
+
+  if (!employeeColumns.includes('password')) {
+    db.run('ALTER TABLE employees ADD COLUMN password TEXT');
+    changed = true;
+  }
+
+  if (!employeeColumns.includes('profile_picture')) {
+    db.run('ALTER TABLE employees ADD COLUMN profile_picture TEXT');
+    changed = true;
+  }
+
+  if (changed) {
+    saveDatabase();
+  }
 }
 
 function saveDatabase() {

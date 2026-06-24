@@ -1,11 +1,12 @@
 import express from 'express';
 import Attendance from '../models/Attendance.js';
 import Employee from '../models/Employee.js';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
 
 router.use(authenticate);
+router.use(authorize('admin'));
 
 router.get('/daily', async (req, res) => {
   try {

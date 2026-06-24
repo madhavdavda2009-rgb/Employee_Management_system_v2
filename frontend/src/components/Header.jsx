@@ -42,6 +42,9 @@ const Header = ({ toggleMobileSidebar }) => {
               {user?.name?.charAt(0).toUpperCase()}
             </div>
           </div>
+          <span className="hidden md:inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white/5 text-slate-300 border border-white/10">
+            {user?.role === 'employee' ? 'Employee' : 'Admin'}
+          </span>
 
           <motion.button
             whileHover={{ scale: 1.08 }}

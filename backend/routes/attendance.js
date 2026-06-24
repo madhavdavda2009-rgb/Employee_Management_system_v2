@@ -1,7 +1,7 @@
 import express from 'express';
 import Employee from '../models/Employee.js';
 import Attendance from '../models/Attendance.js';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -15,27 +15,41 @@ router.post('/mark', async (req, res) => {
       return res.status(400).json({ error: 'No face descriptor provided' });
     }
 
-    const employees = Employee.findAll();
-    
-    if (employees.length === 0) {
-      return res.status(404).json({ error: 'No employees registered' });
-    }
-
-    // Find best match using Euclidean distance
     let bestMatch = null;
     let minDistance = Infinity;
     const threshold = 0.6;
 
-    for (const emp of employees) {
-      const distance = euclideanDistance(faceDescriptor, emp.faceEncoding);
-      if (distance < minDistance && distance < threshold) {
-        minDistance = distance;
-        bestMatch = emp;
+    if (req.user.role === 'employee') {
+      const currentEmployee = Employee.findById(req.user.id);
+      if (!currentEmployee) {
+        return res.status(404).json({ error: 'Employee not found' });
       }
-    }
 
-    if (!bestMatch) {
-      return res.status(404).json({ error: 'Face not recognized' });
+      const distance = euclideanDistance(faceDescriptor, currentEmployee.faceEncoding);
+      if (distance >= threshold) {
+        return res.status(400).json({ error: 'Face does not match this account.' });
+      }
+
+      bestMatch = currentEmployee;
+      minDistance = distance;
+    } else {
+      const employees = Employee.findAll();
+
+      if (employees.length === 0) {
+        return res.status(404).json({ error: 'No employees registered' });
+      }
+
+      for (const emp of employees) {
+        const distance = euclideanDistance(faceDescriptor, emp.faceEncoding);
+        if (distance < minDistance && distance < threshold) {
+          minDistance = distance;
+          bestMatch = emp;
+        }
+      }
+
+      if (!bestMatch) {
+        return res.status(404).json({ error: 'Face not recognized' });
+      }
     }
 
     const today = new Date().toISOString().split('T')[0];
@@ -85,7 +99,7 @@ function euclideanDistance(desc1, desc2) {
   return Math.sqrt(sum);
 }
 
-router.get('/today', async (req, res) => {
+router.get('/today', authorize('admin'), async (req, res) => {
   try {
     const today = new Date().toISOString().split('T')[0];
     const attendance = Attendance.findByDate(today);
@@ -95,7 +109,21 @@ router.get('/today', async (req, res) => {
   }
 });
 
-router.get('/employee/:employeeId', async (req, res) => {
+router.get('/me', async (req, res) => {
+  try {
+    if (req.user.role !== 'employee') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const { startDate, endDate } = req.query;
+    const attendance = Attendance.findByEmployeeId(req.user.id, { startDate, endDate });
+    res.json(attendance);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/employee/:employeeId', authorize('admin'), async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
     const attendance = Attendance.findByEmployeeId(req.params.employeeId, { startDate, endDate });
@@ -105,7 +133,7 @@ router.get('/employee/:employeeId', async (req, res) => {
   }
 });
 
-router.get('/stats', async (req, res) => {
+router.get('/stats', authorize('admin'), async (req, res) => {
   try {
     const today = new Date().toISOString().split('T')[0];
     

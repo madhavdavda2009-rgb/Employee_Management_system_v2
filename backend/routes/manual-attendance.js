@@ -1,11 +1,12 @@
 import express from 'express';
 import Employee from '../models/Employee.js';
 import Attendance from '../models/Attendance.js';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
 
 router.use(authenticate);
+router.use(authorize('admin'));
 
 router.post('/mark-manual', async (req, res) => {
   try {
